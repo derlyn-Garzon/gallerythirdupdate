@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cubo 3D Positivo - Mensajes de Inspiración</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Soft background ambient shapes -->
+  <div class="bg-shape shape1"></div>
+  <div class="bg-shape shape2"></div>
+  <div class="bg-shape shape3"></div>
+
+  <main class="app-container">
+    <header class="header">
+      <h1 class="title">Dado de Positividad</h1>
+      <p class="subtitle">Lanza el cubo y descubre tu mensaje inspirador para hoy</p>
+    </header>
+
+    <!-- 3D Scene Container -->
+    <div class="scene">
+      <div class="cube" id="cube">
+        <!-- Face 1: Front -->
+        <div class="cube-face face-front" data-face="0">
+          <div class="face-number">1</div>
+          <p class="face-text">Todo fluye</p>
+          <div class="face-sparkle">✦</div>
+        </div>
+
+        <!-- Face 2: Back -->
+        <div class="cube-face face-back" data-face="1">
+          <div class="face-number">2</div>
+          <p class="face-text">Confía en el proceso</p>
+          <div class="face-sparkle">✦</div>
+        </div>
+
+        <!-- Face 3: Right -->
+        <div class="cube-face face-right" data-face="2">
+          <div class="face-number">3</div>
+          <p class="face-text">Crea tu realidad</p>
+          <div class="face-sparkle">✦</div>
+        </div>
+
+        <!-- Face 4: Left -->
+        <div class="cube-face face-left" data-face="3">
+          <div class="face-number">4</div>
+          <p class="face-text">Brilla con luz propia</p>
+          <div class="face-sparkle">✦</div>
+        </div>
+
+        <!-- Face 5: Top -->
+        <div class="cube-face face-top" data-face="4">
+          <div class="face-number">5</div>
+          <p class="face-text">Cada día es una oportunidad</p>
+          <div class="face-sparkle">✦</div>
+        </div>
+
+        <!-- Face 6: Bottom -->
+        <div class="cube-face face-bottom" data-face="5">
+          <div class="face-number">6</div>
+          <p class="face-text">Sigue a tu corazón</p>
+          <div class="face-sparkle">✦</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls & Feedback -->
+    <div class="controls">
+      <button id="rollBtn" class="roll-btn" aria-label="Lanzar Dado">
+        <span class="btn-icon">✨</span>
+        <span class="btn-text">Descubrir Mensaje</span>
+      </button>
+
+      <div id="messageBanner" class="message-banner" aria-live="polite">
+        <span class="banner-icon">🌟</span>
+        <span id="bannerText" class="banner-text">Haz clic en el botón para lanzar el cubo</span>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
