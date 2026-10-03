@@ -1,3 +1,5 @@
+'use strict';
+
 document.addEventListener('DOMContentLoaded', () => {
   const cube = document.getElementById('cube');
   const rollBtn = document.getElementById('rollBtn');
