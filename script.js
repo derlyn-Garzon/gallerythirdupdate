@@ -36,13 +36,23 @@ document.addEventListener('DOMContentLoaded', () => {
     rollBtn.disabled = true;
     rollBtn.style.cursor = 'not-allowed';
 
+    // Security enhancement: Use Cryptographically Secure Pseudorandom Number Generator (CSPRNG)
+    function getRandomInt(max) {
+      if (window.crypto && window.crypto.getRandomValues) {
+        const array = new Uint32Array(1);
+        window.crypto.getRandomValues(array);
+        return array[0] % max;
+      }
+      return Math.floor(Math.random() * max);
+    }
+
     // Pick a random face index (0 to 5)
-    const targetIndex = Math.floor(Math.random() * faceData.length);
+    const targetIndex = getRandomInt(faceData.length);
     const targetAngle = faceAngles[targetIndex];
 
     // Calculate extra full rotations (2 to 4 full 360 degree spins) for dramatic roll
-    const extraSpinsX = (2 + Math.floor(Math.random() * 3)) * 360;
-    const extraSpinsY = (2 + Math.floor(Math.random() * 3)) * 360;
+    const extraSpinsX = (2 + getRandomInt(3)) * 360;
+    const extraSpinsY = (2 + getRandomInt(3)) * 360;
 
     // Calculate new total cumulative rotation angles so transition is continuous and smooth
     const currentModuloX = ((currentX % 360) + 360) % 360;
