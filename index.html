@@ -1,87 +1,603 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full bg-slate-50">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cubo 3D Positivo - Mensajes de Inspiración</title>
+  <title>Gestión y Entrega de Productos Visuales</title>
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- jsPDF CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Custom Styles -->
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <!-- Soft background ambient shapes -->
-  <div class="bg-shape shape1"></div>
-  <div class="bg-shape shape2"></div>
-  <div class="bg-shape shape3"></div>
+<body class="h-full flex flex-col font-sans text-slate-800 bg-slate-50">
 
-  <main class="app-container">
-    <header class="header">
-      <h1 class="title">Dado de Positividad</h1>
-      <p class="subtitle">Lanza el cubo y descubre tu mensaje inspirador para hoy</p>
-    </header>
-
-    <!-- 3D Scene Container -->
-    <div class="scene">
-      <div class="cube" id="cube">
-        <!-- Face 1: Front -->
-        <div class="cube-face face-front" data-face="0">
-          <div class="face-number">1</div>
-          <p class="face-text">Todo fluye</p>
-          <div class="face-sparkle">✦</div>
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Logo / Brand -->
+      <a href="#empresa" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+          <i data-lucide="layers" class="w-5 h-5"></i>
         </div>
-
-        <!-- Face 2: Back -->
-        <div class="cube-face face-back" data-face="1">
-          <div class="face-number">2</div>
-          <p class="face-text">Confía en el proceso</p>
-          <div class="face-sparkle">✦</div>
+        <div>
+          <span class="font-extrabold text-lg tracking-tight text-slate-900 block leading-tight">VisualDeliver</span>
+          <span class="text-xs text-slate-500 font-medium block">Gestión & Entregables</span>
         </div>
+      </a>
 
-        <!-- Face 3: Right -->
-        <div class="cube-face face-right" data-face="2">
-          <div class="face-number">3</div>
-          <p class="face-text">Crea tu realidad</p>
-          <div class="face-sparkle">✦</div>
-        </div>
+      <!-- Main Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60">
+        <button id="nav-tab-empresa" onclick="switchTab('empresa')" class="nav-tab flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900">
+          <i data-lucide="building-2" class="w-4 h-4"></i>
+          Entregables Empresa
+        </button>
+        <button id="nav-tab-cliente" onclick="switchTab('cliente')" class="nav-tab flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900">
+          <i data-lucide="user-check" class="w-4 h-4"></i>
+          Vista Cliente
+        </button>
+        <button id="nav-tab-ayuda" onclick="switchTab('ayuda')" class="nav-tab flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900">
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
+          Centro de Ayuda
+        </button>
+      </nav>
 
-        <!-- Face 4: Left -->
-        <div class="cube-face face-left" data-face="3">
-          <div class="face-number">4</div>
-          <p class="face-text">Brilla con luz propia</p>
-          <div class="face-sparkle">✦</div>
-        </div>
+      <!-- Right Header Actions -->
+      <div class="flex items-center gap-3">
+        <!-- Supabase Status Badge / Config Button -->
+        <button id="btn-supabase-config" onclick="openSupabaseModal()" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition shadow-sm">
+          <span id="supabase-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="supabase-status-text">Local Data</span>
+          <i data-lucide="database" class="w-3.5 h-3.5 text-slate-400"></i>
+        </button>
 
-        <!-- Face 5: Top -->
-        <div class="cube-face face-top" data-face="4">
-          <div class="face-number">5</div>
-          <p class="face-text">Cada día es una oportunidad</p>
-          <div class="face-sparkle">✦</div>
-        </div>
-
-        <!-- Face 6: Bottom -->
-        <div class="cube-face face-bottom" data-face="5">
-          <div class="face-number">6</div>
-          <p class="face-text">Sigue a tu corazón</p>
-          <div class="face-sparkle">✦</div>
-        </div>
+        <!-- Mobile Navigation Menu Toggle -->
+        <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
       </div>
     </div>
 
-    <!-- Controls & Feedback -->
-    <div class="controls">
-      <button id="rollBtn" class="roll-btn" aria-label="Lanzar Dado">
-        <span class="btn-icon">✨</span>
-        <span class="btn-text">Descubrir Mensaje</span>
+    <!-- Mobile Nav Menu -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-2">
+      <button onclick="switchTab('empresa'); toggleMobileMenu()" class="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-slate-700 hover:bg-slate-100">
+        <i data-lucide="building-2" class="w-4 h-4 text-blue-600"></i> Entregables Empresa
       </button>
-
-      <div id="messageBanner" class="message-banner" aria-live="polite">
-        <span class="banner-icon">🌟</span>
-        <span id="bannerText" class="banner-text">Haz clic en el botón para lanzar el cubo</span>
-      </div>
+      <button onclick="switchTab('cliente'); toggleMobileMenu()" class="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-slate-700 hover:bg-slate-100">
+        <i data-lucide="user-check" class="w-4 h-4 text-emerald-600"></i> Vista Cliente
+      </button>
+      <button onclick="switchTab('ayuda'); toggleMobileMenu()" class="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg text-slate-700 hover:bg-slate-100">
+        <i data-lucide="help-circle" class="w-4 h-4 text-indigo-600"></i> Centro de Ayuda
+      </button>
     </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- =================================================================== -->
+    <!-- SECTION 1: ENTREGABLES EMPRESA (PANEL DE ADMINISTRACIÓN) -->
+    <!-- =================================================================== -->
+    <section id="view-empresa" class="tab-view space-y-6">
+      <!-- Top Action Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Panel de Entregables Empresa</h1>
+          <p class="text-sm text-slate-500 mt-0.5">Administra, edita y comparte productos visuales con tus clientes.</p>
+        </div>
+
+        <button onclick="openCreateModal()" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:-translate-y-0.5 active:translate-y-0">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          Nuevo Entregable
+        </button>
+      </div>
+
+      <!-- Filters & Stats Bar -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Filter Tabs -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+          <button onclick="filterDeliverables('all')" id="filter-all" class="filter-btn active px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all border">
+            Todos (<span id="count-all">0</span>)
+          </button>
+          <button onclick="filterDeliverables('a-tiempo')" id="filter-a-tiempo" class="filter-btn px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all border border-slate-200 text-slate-600 hover:bg-slate-100">
+            🟢 A tiempo (<span id="count-a-tiempo">0</span>)
+          </button>
+          <button onclick="filterDeliverables('proximo')" id="filter-proximo" class="filter-btn px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all border border-slate-200 text-slate-600 hover:bg-slate-100">
+            🟡 Próximo a vencer (<span id="count-proximo">0</span>)
+          </button>
+          <button onclick="filterDeliverables('vencido')" id="filter-vencido" class="filter-btn px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all border border-slate-200 text-slate-600 hover:bg-slate-100">
+            🔴 Vencido (<span id="count-vencido">0</span>)
+          </button>
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative min-w-[240px]">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="search-input" oninput="searchDeliverables(this.value)" placeholder="Buscar cliente o producto..." class="w-full pl-9 pr-4 py-2 text-xs font-medium bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-sm">
+        </div>
+      </div>
+
+      <!-- Deliverables Cards Grid -->
+      <div id="deliverables-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Rendered dynamically via JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
+        <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="image" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800">No hay entregables que mostrar</h3>
+        <p class="text-sm text-slate-500 max-w-md mx-auto mt-1 mb-6">Aún no se han registrado productos entregables o ningún resultado coincide con tu búsqueda.</p>
+        <button onclick="openCreateModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold text-xs rounded-xl shadow hover:bg-blue-700 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i> Crear primer entregable
+        </button>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SECTION 2: ENTREGABLES CLIENTE (VISTA DE ACCESO PRIVADO) -->
+    <!-- =================================================================== -->
+    <section id="view-cliente" class="tab-view space-y-6 hidden">
+      <!-- Client Selector Bar (For Demo/Testing) -->
+      <div class="bg-amber-50 border border-amber-200/70 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-amber-900">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600 flex-shrink-0"></i>
+          <span><strong>Simulador de Portal de Cliente:</strong> Selecciona un entregable para probar el acceso mediante URL única.</span>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <select id="client-demo-select" onchange="selectClientDemo(this.value)" class="bg-white border border-amber-300 text-slate-800 font-medium rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 w-full sm:w-auto">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+      </div>
+
+      <!-- STATE A: LOCK SCREEN / PASSWORD AUTH -->
+      <div id="client-lock-screen" class="max-w-md mx-auto my-8 bg-white rounded-2xl border border-slate-200 shadow-xl p-8 text-center space-y-6">
+        <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+          <i data-lucide="lock" class="w-8 h-8"></i>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-extrabold text-slate-900">Acceso Privado a Entregable</h2>
+          <p class="text-xs text-slate-500 mt-1" id="client-lock-subtitle">Introduce la clave de seguridad provista por la empresa para desbloquear tu material visual.</p>
+        </div>
+
+        <form id="form-client-auth" onsubmit="handleClientAuth(event)" class="space-y-4 text-left">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Clave de Acceso Única</label>
+            <div class="relative">
+              <input type="password" id="client-password-input" required placeholder="Ingresa tu clave de 10 caracteres..." class="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm tracking-wider focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+              <button type="button" onclick="togglePasswordVisibility('client-password-input', 'toggle-lock-icon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <i data-lucide="eye" id="toggle-lock-icon" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <p id="lock-error-msg" class="hidden text-xs text-red-500 font-semibold mt-1.5 flex items-center gap-1">
+              <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+              <span>Clave de acceso incorrecta. Por favor verifícala e intenta de nuevo.</span>
+            </p>
+          </div>
+
+          <button type="submit" class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-500/25 transition-all">
+            Desbloquear Entregable
+          </button>
+        </form>
+
+        <div class="pt-4 border-t border-slate-100 text-xs text-slate-400 flex items-center justify-center gap-1.5">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
+          <span>Conexión segura protegida con hash de seguridad</span>
+        </div>
+      </div>
+
+      <!-- STATE B: UNLOCKED DELIVERABLE PORTAL -->
+      <div id="client-unlocked-portal" class="hidden space-y-6">
+        <!-- Client Greeting Banner -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div class="space-y-2">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold">
+              <i data-lucide="check-circle2" class="w-3.5 h-3.5"></i>
+              Acceso Verificado
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Entregable para: <span id="client-view-name" class="text-blue-400"></span></h1>
+            <p class="text-sm text-slate-300 max-w-xl">Aquí puedes consultar, previsualizar y descargar tus productos visuales finales en alta resolución o exportar el reporte formal en PDF.</p>
+          </div>
+
+          <button onclick="lockClientPortal()" class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white rounded-xl text-xs font-semibold backdrop-blur transition border border-white/10 self-start md:self-auto">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            Cerrar Sesión
+          </button>
+        </div>
+
+        <!-- Product Details Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+          <!-- Image Viewer Column -->
+          <div class="lg:col-span-7 bg-slate-900 p-6 flex flex-col items-center justify-center relative group min-h-[380px]">
+            <img id="client-view-image" src="" alt="Vista previa del entregable" class="max-h-[460px] w-auto object-contain rounded-lg shadow-2xl transition duration-300 group-hover:scale-[1.01]">
+
+            <button onclick="openLightbox(document.getElementById('client-view-image').src, document.getElementById('client-view-product').textContent)" class="absolute bottom-4 right-4 bg-slate-900/80 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg backdrop-blur border border-white/20 flex items-center gap-1.5 shadow transition">
+              <i data-lucide="maximize-2" class="w-4 h-4"></i>
+              Pantalla Completa
+            </button>
+          </div>
+
+          <!-- Product Meta & Downloads Column -->
+          <div class="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between space-y-6">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between gap-2">
+                <span id="client-view-status" class="status-badge"></span>
+                <span class="text-xs text-slate-400 font-mono" id="client-view-id">ID: #---</span>
+              </div>
+
+              <div>
+                <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">Producto Entregable</span>
+                <h2 id="client-view-product" class="text-2xl font-bold text-slate-900 mt-0.5"></h2>
+              </div>
+
+              <div class="border-t border-slate-100 pt-4">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Descripción del Producto</span>
+                <p id="client-view-description" class="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100"></p>
+              </div>
+
+              <div class="border-t border-slate-100 pt-4 flex items-center justify-between text-xs text-slate-600">
+                <span class="font-medium text-slate-500">Fecha Límite de Entrega:</span>
+                <span id="client-view-deadline" class="font-bold text-slate-900"></span>
+              </div>
+            </div>
+
+            <!-- Download Action Buttons -->
+            <div class="pt-6 border-t border-slate-200 space-y-3">
+              <button onclick="downloadClientImage()" class="w-full flex items-center justify-center gap-2.5 py-3.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 transition hover:-translate-y-0.5">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                Descargar Imagen en Alta Resolución
+              </button>
+
+              <button onclick="downloadClientPDF()" class="w-full flex items-center justify-center gap-2.5 py-3.5 px-5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-xl shadow-md transition hover:-translate-y-0.5">
+                <i data-lucide="file-text" class="w-4 h-4 text-red-400"></i>
+                Descargar Reporte Formal en PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SECTION 3: CENTRO DE AYUDA E INSTRUCCIONES -->
+    <!-- =================================================================== -->
+    <section id="view-ayuda" class="tab-view space-y-8 hidden">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-lg text-center max-w-4xl mx-auto">
+        <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-3 backdrop-blur">
+          <i data-lucide="help-circle" class="w-6 h-6 text-white"></i>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Centro de Ayuda y Onboarding</h1>
+        <p class="text-sm text-blue-100 max-w-xl mx-auto mt-2">Aprende a gestionar entregables visuales, configurar Supabase y guiar a tus clientes paso a paso.</p>
+      </div>
+
+      <!-- Help Navigation Tabs -->
+      <div class="max-w-4xl mx-auto">
+        <div class="flex border-b border-slate-200 space-x-8">
+          <button onclick="switchHelpTab('empresa')" id="help-tab-empresa" class="help-tab-btn active pb-4 text-sm font-bold border-b-2 transition">
+            🏢 Guía "Entregables Empresa"
+          </button>
+          <button onclick="switchHelpTab('cliente')" id="help-tab-cliente" class="help-tab-btn pb-4 text-sm font-bold border-b-2 transition text-slate-500 hover:text-slate-800 border-transparent">
+            👤 Guía "Entregables Cliente"
+          </button>
+          <button onclick="switchHelpTab('faq')" id="help-tab-faq" class="help-tab-btn pb-4 text-sm font-bold border-b-2 transition text-slate-500 hover:text-slate-800 border-transparent">
+            ❓ Preguntas Frecuentes (FAQ)
+          </button>
+        </div>
+
+        <!-- Help Content 1: Empresa Guide -->
+        <div id="help-content-empresa" class="help-content py-6 space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">1</div>
+              <h3 class="font-bold text-slate-900">Creación de Entregable</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Haz clic en <strong>"+ Nuevo Entregable"</strong>, completa los metadatos (Cliente, Producto, Descripción, Fecha Límite) y sube la imagen de presentación por arrastrar y soltar.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg">2</div>
+              <h3 class="font-bold text-slate-900">Seguridad y Clave Única</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">El sistema genera una clave aleatoria segura de 10 caracteres (`crypto.getRandomValues`). La clave se encripta con hash SHA-256 antes de guardarse.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">3</div>
+              <h3 class="font-bold text-slate-900">Compartir con Cliente</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Presiona el botón <strong>"Copiar Enlace"</strong> para obtener la URL directa (`#cliente/:id`) y proporciona la clave de acceso al cliente vía email o chat.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Help Content 2: Cliente Guide -->
+        <div id="help-content-cliente" class="help-content py-6 space-y-6 hidden">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">1</div>
+              <h3 class="font-bold text-slate-900">Ingreso con Enlace</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Abre el enlace personalizado en cualquier navegador. La pantalla de bloqueo te solicitará la clave única asignada.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">2</div>
+              <h3 class="font-bold text-slate-900">Validación de Clave</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Al ingresar la clave correcta, la sesión privada se desbloquea instantáneamente permitiendo explorar el material en alta resolución.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-lg">3</div>
+              <h3 class="font-bold text-slate-900">Descarga de Archivos</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Descarga la imagen original o genera un informe PDF con membrete formal, detalles del cliente, producto y estado de entrega.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Help Content 3: FAQ Accordion -->
+        <div id="help-content-faq" class="help-content py-6 space-y-4 hidden">
+          <div class="space-y-3">
+            <!-- FAQ Item 1 -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left font-semibold text-slate-900 flex justify-between items-center hover:bg-slate-50 transition">
+                <span>¿Cómo se protegen las contraseñas de los clientes?</span>
+                <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform duration-200"></i>
+              </button>
+              <div class="faq-answer hidden px-6 pb-4 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                Las contraseñas no se almacenan en texto plano. Se procesan mediante algoritmos criptográficos (`crypto.subtle` / SHA-256) antes de guardarse en LocalStorage o en Supabase PostgreSQL.
+              </div>
+            </div>
+
+            <!-- FAQ Item 2 -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left font-semibold text-slate-900 flex justify-between items-center hover:bg-slate-50 transition">
+                <span>¿Cómo conectar el sistema con mi base de datos de Supabase?</span>
+                <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform duration-200"></i>
+              </button>
+              <div class="faq-answer hidden px-6 pb-4 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                Haz clic en el botón <strong>"Local Data" / "Supabase"</strong> en la esquina superior derecha del menú. Introduce tu <code>Supabase URL</code> y <code>Anon API Key</code>. El sistema cambiará automáticamente la persistencia a las tablas SQL <code>clientes</code> y <code>entregables</code>.
+              </div>
+            </div>
+
+            <!-- FAQ Item 3 -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left font-semibold text-slate-900 flex justify-between items-center hover:bg-slate-50 transition">
+                <span>¿Qué significan los colores de los estados de fecha límite?</span>
+                <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform duration-200"></i>
+              </button>
+              <div class="faq-answer hidden px-6 pb-4 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                <ul>
+                  <li>🟢 <strong>A tiempo:</strong> Faltan más de 3 días para la fecha límite.</li>
+                  <li>🟡 <strong>Próximo a vencer:</strong> Quedan 3 días o menos para la entrega.</li>
+                  <li>🔴 <strong>Vencido:</strong> La fecha límite ha transcurrido.</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- FAQ Item 4 -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <button onclick="toggleFaq(this)" class="w-full px-6 py-4 text-left font-semibold text-slate-900 flex justify-between items-center hover:bg-slate-50 transition">
+                <span>¿Qué formatos de imágenes son compatibles?</span>
+                <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform duration-200"></i>
+              </button>
+              <div class="faq-answer hidden px-6 pb-4 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                Soporta formatos estándar de imagen como PNG, JPG, JPEG, WEBP y SVG.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
+  <!-- =================================================================== -->
+  <!-- MODALS -->
+  <!-- =================================================================== -->
+
+  <!-- MODAL: CREAR / EDITAR ENTREGABLE -->
+  <div id="modal-entregable" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 p-6 sm:p-8 space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div>
+          <h2 id="modal-title" class="text-xl font-bold text-slate-900">Nuevo Entregable</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Completa los datos del cliente, producto e imagen asociada.</p>
+        </div>
+        <button onclick="closeModal('modal-entregable')" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-entregable" onsubmit="saveDeliverable(event)" class="space-y-5">
+        <input type="hidden" id="entregable-id">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Client Name -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nombre del Cliente *</label>
+            <input type="text" id="input-cliente" required placeholder="Ej: TechCorp Studio" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+          </div>
+
+          <!-- Product Name -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nombre del Producto *</label>
+            <input type="text" id="input-producto" required placeholder="Ej: Render Arquitectónico Fachada Norte" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Delivery Deadline Date -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Fecha Límite de Entrega *</label>
+            <input type="date" id="input-fecha-limite" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+          </div>
+
+          <!-- Client Access Password (Auto-generated) -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Clave de Acceso Única *</label>
+              <button type="button" onclick="generateNewPassword()" class="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                <i data-lucide="refresh-cw" class="w-3 h-3"></i> Regenerar
+              </button>
+            </div>
+            <div class="relative">
+              <input type="text" id="input-password" required readonly class="w-full pl-3.5 pr-10 py-2.5 text-xs bg-slate-100 font-mono font-bold text-slate-800 border border-slate-200 rounded-xl focus:outline-none">
+              <button type="button" onclick="copyPasswordToClipboard()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 p-1">
+                <i data-lucide="copy" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Descripción Breve</label>
+          <textarea id="input-descripcion" rows="3" placeholder="Detalles de resolución, variaciones de color o especificaciones del proyecto entregado..." class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"></textarea>
+        </div>
+
+        <!-- Image Upload Dropzone -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Imagen del Producto / Entregable *</label>
+
+          <div id="dropzone" onclick="document.getElementById('file-input').click()" class="border-2 border-dashed border-slate-300 hover:border-blue-500 bg-slate-50/80 hover:bg-blue-50/30 rounded-2xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2">
+            <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+
+            <div id="dropzone-prompt" class="space-y-2">
+              <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mx-auto">
+                <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+              </div>
+              <p class="text-xs font-semibold text-slate-700">Arrastra una imagen aquí o <span class="text-blue-600 underline">haz clic para examinar</span></p>
+              <p class="text-[11px] text-slate-400">Archivos soportados: PNG, JPG, WEBP, SVG (máx. 10MB)</p>
+            </div>
+
+            <div id="dropzone-preview-container" class="hidden relative w-full max-h-56 overflow-hidden rounded-xl border border-slate-200">
+              <img id="dropzone-preview" src="" alt="Vista previa" class="w-full h-48 object-cover">
+              <button type="button" onclick="removeSelectedImage(event)" class="absolute top-2 right-2 bg-slate-900/80 text-white rounded-full p-1.5 hover:bg-red-600 transition">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+          <button type="button" onclick="closeModal('modal-entregable')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 transition">
+            Guardar Entregable
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SUPABASE CONFIGURATION -->
+  <div id="modal-supabase" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 p-6 sm:p-8 space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+            <i data-lucide="database" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Configuración de Supabase</h2>
+            <p class="text-xs text-slate-500">Conecta tu propia base de datos PostgreSQL en Supabase.</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-supabase')" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-supabase-config" onsubmit="saveSupabaseConfig(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Supabase Project URL</label>
+          <input type="url" id="sb-url" placeholder="https://xyzcompany.supabase.co" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Supabase Anon Key</label>
+          <input type="password" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6Ik..." class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-xl text-xs text-slate-600 space-y-2 border border-slate-200">
+          <p class="font-bold text-slate-800 flex items-center gap-1">
+            <i data-lucide="info" class="w-3.5 h-3.5 text-emerald-600"></i>
+            Modo Local vs Supabase:
+          </p>
+          <p>Si dejas estos campos vacíos, la aplicación continuará funcionando en modo <strong>LocalStorage</strong> con datos locales persistentes en tu navegador.</p>
+        </div>
+
+        <div class="flex items-center justify-between border-t border-slate-100 pt-4">
+          <button type="button" onclick="clearSupabaseConfig()" class="text-xs font-bold text-red-600 hover:text-red-800">
+            Desconectar y usar LocalStorage
+          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="closeModal('modal-supabase')" class="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">
+              Cancelar
+            </button>
+            <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition">
+              Guardar y Conectar
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: LIGHTBOX IMAGE VIEWER -->
+  <div id="modal-lightbox" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="absolute top-4 right-4 z-10 flex items-center gap-3">
+      <span id="lightbox-caption" class="text-sm font-semibold text-white/80"></span>
+      <button onclick="closeModal('modal-lightbox')" class="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full transition">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+    </div>
+    <div class="max-w-5xl max-h-[85vh] w-full flex items-center justify-center p-2">
+      <img id="lightbox-img" src="" alt="Amplificación" class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/10">
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS CONTAINER -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Application Main Script -->
   <script src="script.js"></script>
 </body>
 </html>
