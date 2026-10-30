@@ -29,6 +29,25 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentY = 0;
   let isRolling = false;
 
+  /**
+   * Generates a cryptographically secure random integer in the range [0, max - 1].
+   * Uses rejection sampling to eliminate modulo bias.
+   * Security Note: Replaces insecure Math.random() with Web Crypto API.
+   */
+  function getRandomInt(max) {
+    if (window.crypto && window.crypto.getRandomValues) {
+      const randomBuffer = new Uint32Array(1);
+      const maxUint32 = 0xFFFFFFFF;
+      const limit = maxUint32 - (maxUint32 % max);
+      do {
+        window.crypto.getRandomValues(randomBuffer);
+      } while (randomBuffer[0] >= limit);
+      return randomBuffer[0] % max;
+    }
+    // Fallback to Math.random() if Web Crypto API is unavailable
+    return Math.floor(Math.random() * max);
+  }
+
   function rollCube() {
     if (isRolling) return;
 
@@ -36,13 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
     rollBtn.disabled = true;
     rollBtn.style.cursor = 'not-allowed';
 
-    // Pick a random face index (0 to 5)
-    const targetIndex = Math.floor(Math.random() * faceData.length);
+    // Pick a random face index (0 to 5) using CSPRNG
+    const targetIndex = getRandomInt(faceData.length);
     const targetAngle = faceAngles[targetIndex];
 
     // Calculate extra full rotations (2 to 4 full 360 degree spins) for dramatic roll
-    const extraSpinsX = (2 + Math.floor(Math.random() * 3)) * 360;
-    const extraSpinsY = (2 + Math.floor(Math.random() * 3)) * 360;
+    const extraSpinsX = (2 + getRandomInt(3)) * 360;
+    const extraSpinsY = (2 + getRandomInt(3)) * 360;
 
     // Calculate new total cumulative rotation angles so transition is continuous and smooth
     const currentModuloX = ((currentX % 360) + 360) % 360;
